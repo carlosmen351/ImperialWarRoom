@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.1.0] - 2026-11-19
+
+### Phase 5 — Tactical communicator and emergency council
+
+- Replaced the initial group chat with a mobile-first command directory and private 1-a-1 channels for all five cabinet members. Each private conversation has its own local history and receives the shared empire constitution and recent timeline.
+- Added editable Stellaris council traits to agent profiles, including quick tags and Gemini extraction from a council screenshot or dictated notes. Current and newly acquired traits are included in each agent's system prompt.
+- Added the emergency council crisis mode with selectable participants and speaking order, sequential chained responses, live response cards, and queued voice playback. Black Ops is last by default, and completed debates are recorded in the global timeline.
+- Added private-channel timeline recording, quick header access to the empire timeline, dossiers, settings, and Screen Wake Lock.
+- Completed the six-voice Google Cloud Text-to-Speech payload with matching `languageCode`, voice `name`, and `ssmlGender`; Google TTS errors are now shown before browser speech fallback.
+- Preserved compatibility with existing local saves and documented the new workflows.
+
 ## [1.0.1] - 2026-11-19
 
 ### Cabinet identity labels and visuals

@@ -23,11 +23,11 @@ export const DEFAULT_CONFIG: ProviderConfig = {
 export const STORAGE_KEY = "imperial-war-room-v1";
 
 const AGENT_DEFAULTS: Record<Exclude<AgentId, "memoryUpdater">, AgentProfile> = {
-  almirante: { displayName: "General", avatar: "⚔️", color: "#7f1d1d", voiceId: "male-authoritative" },
-  canciller: { displayName: "Embajador", avatar: "🕊️", color: "#f8fafc", voiceId: "male-diplomatic" },
-  cientifico: { displayName: "Doctor", avatar: "🔬", color: "#2563eb", voiceId: "male-analytical" },
-  logistica: { displayName: "Gobernador", avatar: "💰", color: "#f59e0b", voiceId: "female-persuasive" },
-  blackops: { displayName: "Agente", avatar: "☠️", color: "#000000", voiceId: "female-strategist" },
+  almirante: { displayName: "General", avatar: "⚔️", color: "#7f1d1d", voiceId: "male-authoritative", traits: [] },
+  canciller: { displayName: "Embajador", avatar: "🕊️", color: "#f8fafc", voiceId: "male-diplomatic", traits: [] },
+  cientifico: { displayName: "Doctor", avatar: "🔬", color: "#2563eb", voiceId: "male-analytical", traits: [] },
+  logistica: { displayName: "Gobernador", avatar: "💰", color: "#f59e0b", voiceId: "female-persuasive", traits: [] },
+  blackops: { displayName: "Agente", avatar: "☠️", color: "#000000", voiceId: "female-strategist", traits: [] },
 };
 
 const LEGACY_DEFAULTS: Record<keyof typeof AGENT_DEFAULTS, { displayName: string; avatar: string; color: string }> = {
@@ -48,6 +48,7 @@ function restoreAgentProfile(id: keyof typeof AGENT_DEFAULTS, value: Partial<Age
     avatar: typeof value.avatar === "string" && value.avatar !== legacy.avatar ? value.avatar : fallback.avatar,
     color: typeof value.color === "string" && value.color !== legacy.color ? value.color : fallback.color,
     voiceId: savedVoice?.id || legacyVoice?.id || fallback.voiceId,
+    traits: Array.isArray(value.traits) ? value.traits.filter((trait): trait is string => typeof trait === "string" && Boolean(trait.trim())).map(trait => trait.trim()) : [],
   };
 }
 
@@ -62,6 +63,7 @@ export function createDefaultWarRoom(): WarRoomState {
     timeline: [],
     agentProfiles: createDefaultAgentProfiles(),
     history: [],
+    chats: { almirante: [], canciller: [], cientifico: [], logistica: [], blackops: [] },
     config: { ...DEFAULT_CONFIG },
   };
 }
@@ -80,6 +82,10 @@ export function loadWarRoom(): WarRoomState {
         timeline: Array.isArray(parsed.timeline) ? parsed.timeline : [],
         agentProfiles: Object.fromEntries(Object.entries(AGENT_DEFAULTS).map(([id]) => [id, restoreAgentProfile(id as keyof typeof AGENT_DEFAULTS, parsed.agentProfiles?.[id] || {})])) as WarRoomState["agentProfiles"],
         history: Array.isArray(parsed.history) ? parsed.history : [],
+        chats: Object.fromEntries((Object.keys(AGENT_DEFAULTS) as (keyof typeof AGENT_DEFAULTS)[]).map(id => [
+          id,
+          Array.isArray(parsed.chats?.[id]) ? parsed.chats[id] : [],
+        ])) as WarRoomState["chats"],
         config: {
           apiKey: parsed.config?.provider && parsed.config.provider !== "gemini"
             ? parsed.config.googleTtsApiKey || ""

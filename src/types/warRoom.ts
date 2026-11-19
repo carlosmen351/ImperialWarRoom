@@ -38,6 +38,7 @@ export interface AgentProfile {
   avatar: string;
   color: string;
   voiceId: AgentVoiceId;
+  traits: string[];
 }
 
 export interface TurnMessage {
@@ -54,5 +55,6 @@ export interface WarRoomState {
   timeline: TimelineEvent[];
   agentProfiles: Record<Exclude<AgentId, "memoryUpdater">, AgentProfile>;
   history: TurnMessage[];
+  chats: Record<Exclude<AgentId, "memoryUpdater">, TurnMessage[]>;
   config: ProviderConfig;
 }

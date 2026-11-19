@@ -23,7 +23,7 @@ function Avatar({ value }: { value: string }) {
   return value.startsWith("data:image/") ? <Image src={value} alt="" width={32} height={32} unoptimized className="h-full w-full rounded-full object-cover"/> : <span>{value}</span>;
 }
 
-export default function CabinetFeed({ messages, busy, profiles, apiKey }: { messages: TurnMessage[]; busy: boolean; profiles: Profiles; apiKey: string }) {
+export default function CabinetFeed({ messages, busy, profiles, apiKey, busyLabel = "Gabinete deliberando..." }: { messages: TurnMessage[]; busy: boolean; profiles: Profiles; apiKey: string; busyLabel?: string }) {
   return <main className="flex-1 overflow-y-auto px-3 pb-32 pt-3" aria-live="polite">
     {messages.length === 0 && <div className="mx-auto mt-24 max-w-xs text-center text-sm text-slate-500"><div className="mx-auto mb-4 h-16 w-16 rounded-full border border-sky-500/30 bg-sky-500/5"/><p>Cuartel general listo.</p><p className="mt-1 text-xs">Presiona el micrófono o escribe una consulta.</p></div>}
     {messages.map(message => {
@@ -36,6 +36,6 @@ export default function CabinetFeed({ messages, busy, profiles, apiKey }: { mess
         <p className="text-sm leading-5 text-slate-200">{message.content}</p>
       </article>;
     })}
-    {busy && <div className="mx-auto my-4 w-fit animate-pulse rounded-full border border-sky-400/30 px-4 py-2 text-xs text-sky-300">Gabinete deliberando...</div>}
+    {busy && <div className="mx-auto my-4 w-fit animate-pulse rounded-full border border-sky-400/30 px-4 py-2 text-xs text-sky-300">{busyLabel}</div>}
   </main>;
 }

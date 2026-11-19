@@ -28,9 +28,11 @@ Use **Analizar resumen de Stellaris** to extract the empire constitution from a 
 
 **📋** opens the empire constitution and chronological cabinet-decision timeline. Each completed consultation is recorded with one-line recommendations from all five cabinet members. Approve an option or edit the verdict; the five latest events are provided as historical context on later consultations.
 
-**🪪 Gabinete** opens the five member dossiers. Edit each member's name and one of six Google Neural2 voices; the optional visual settings contain the accent color and avatar/photo. **🔊 Probar** plays a short greeting. Voice pitch and speed are left to the natural cadence of each member's system prompt.
+The main screen is the **Comunicador de Comando** directory. Open a private 1-a-1 channel for one secretary, or start **🚨 Consejo de Emergencia** for an ordered, sequential debate. Each private channel has its own saved conversation; all agents receive the shared empire constitution and recent timeline. Explicitly ask a secretary to record an agreement in the timeline to share it with the cabinet.
 
-The cabinet consults four ministers in parallel, then runs the final Black Ops audit. Push-to-Talk, camera input, the automatic crisis timeline, and Screen Wake Lock during voice input and consultations are supported. Google Cloud Text-to-Speech is the primary voice engine; browser speech synthesis is the silent emergency fallback.
+**🪪 Gabinete** opens the five member dossiers. Edit each member's name, one of six Google Neural2 voices, accent color, and avatar/photo. Record active Stellaris council traits with quick tags, or dictate/upload a council screenshot and use **Actualizar Rasgos por Foto/Voz** to extract them with Gemini. Traits and newly acquired capabilities are added to the relevant agent's system prompt. **🔊 Probar** plays a short greeting.
+
+Emergency Council participation and speaking order are configurable; Black Ops is last by default and audits the preceding interventions. Responses are generated one after another, displayed as they complete, and queued for each member's assigned Google Cloud voice. The completed debate summary is recorded in the global timeline. Push-to-Talk, camera input, and manual or automatic Screen Wake Lock are supported. Browser speech synthesis is the audio fallback.
 
 All game state and the API Key are stored in browser `localStorage`. The key is sent directly from the browser to the Google APIs. Export/import a save from **⚙**.
 

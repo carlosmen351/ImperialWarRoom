@@ -11,6 +11,9 @@ let playbackId = 0;
 let activeAudio: HTMLAudioElement | null = null;
 let activeObjectUrl: string | null = null;
 let activeRequest: AbortController | null = null;
+let queuedLines: SpeechLine[] = [];
+let queuePlaybackId: number | null = null;
+let lastAnnouncedTtsError = "";
 
 function cleanSpeechText(text: string) {
   return text
@@ -26,6 +29,8 @@ function cleanSpeechText(text: string) {
 
 function stopCurrentPlayback() {
   playbackId += 1;
+  queuedLines = [];
+  queuePlaybackId = null;
   activeRequest?.abort();
   activeRequest = null;
   if ("speechSynthesis" in window) window.speechSynthesis.cancel();
@@ -62,15 +67,26 @@ async function playCloud(text: string, voiceId: AgentProfile["voiceId"], apiKey:
       signal: controller.signal,
       body: JSON.stringify({
         input: { text },
-        voice: { languageCode: voice.languageCode, name: voice.name },
+        voice: { languageCode: voice.languageCode, name: voice.name, ssmlGender: voice.ssmlGender },
         audioConfig: { audioEncoding: "MP3" },
       }),
     });
-    if (!response.ok) throw new Error(`TTS respondió HTTP ${response.status}`);
+    if (!response.ok) {
+      const body = await response.text();
+      let message = body;
+      try {
+        const payload = JSON.parse(body) as { error?: { message?: unknown } };
+        if (typeof payload.error?.message === "string") message = payload.error.message;
+      } catch {
+        // Keep Google's raw response body when it is not JSON.
+      }
+      throw new Error(message || `Google Cloud TTS respondió HTTP ${response.status}`);
+    }
     const result = await response.json() as { audioContent?: string };
     if (!result.audioContent) throw new Error("TTS no devolvió audio");
     if (id !== playbackId) return true;
 
+    lastAnnouncedTtsError = "";
     const binary = atob(result.audioContent);
     const bytes = Uint8Array.from(binary, char => char.charCodeAt(0));
     activeObjectUrl = URL.createObjectURL(new Blob([bytes], { type: "audio/mpeg" }));
@@ -91,7 +107,14 @@ async function playCloud(text: string, voiceId: AgentProfile["voiceId"], apiKey:
       audio.onerror = () => finish(false);
       audio.play().catch(() => finish(false));
     });
-  } catch {
+  } catch (error) {
+    if (!controller.signal.aborted && id === playbackId) {
+      const message = error instanceof Error ? error.message : String(error);
+      if (message !== lastAnnouncedTtsError) {
+        lastAnnouncedTtsError = message;
+        window.alert(message);
+      }
+    }
     return false;
   } finally {
     if (activeRequest === controller) activeRequest = null;
@@ -112,12 +135,26 @@ export function speak(text: string, profile: AgentProfile, apiKey: string, stopF
 }
 
 export function speakQueue(lines: SpeechLine[]) {
-  const id = stopCurrentPlayback();
-  const queue = [...lines];
+  stopCurrentPlayback();
+  queuedLines = [...lines];
+  startQueue(playbackId);
+}
+
+export function enqueueSpeech(line: SpeechLine) {
+  queuedLines.push(line);
+  if (queuePlaybackId === null) startQueue(playbackId);
+}
+
+function startQueue(id: number) {
+  if (queuePlaybackId === id) return;
+  queuePlaybackId = id;
   const next = async () => {
     if (id !== playbackId) return;
-    const line = queue.shift();
-    if (!line) return;
+    const line = queuedLines.shift();
+    if (!line) {
+      queuePlaybackId = null;
+      return;
+    }
     const text = cleanSpeechText(line.text);
     if (!text) {
       void next();
@@ -126,11 +163,7 @@ export function speakQueue(lines: SpeechLine[]) {
     const voice = GOOGLE_TTS_VOICES.find(item => item.id === line.profile.voiceId) || GOOGLE_TTS_VOICES[0];
     const played = await playCloud(text, voice.id, line.apiKey, id);
     if (id !== playbackId) return;
-    if (played) {
-      void next();
-      return;
-    }
-    if (!("speechSynthesis" in window)) {
+    if (played || !("speechSynthesis" in window)) {
       void next();
       return;
     }
