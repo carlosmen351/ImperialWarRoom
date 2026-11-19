@@ -1,4 +1,4 @@
-const CACHE = "imperial-war-room-v1";
+const CACHE = "imperial-war-room-v1.0.0";
 const BASE_PATH = new URL(".", self.location.href).pathname.replace(/\/$/, "");
 const ROOT_URL = BASE_PATH + "/";
 const CORE = [ROOT_URL, ROOT_URL + "manifest.webmanifest"];

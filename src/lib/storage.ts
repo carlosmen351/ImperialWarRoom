@@ -1,4 +1,5 @@
 import { AgentId, AgentProfile, EmpireProfile, ProviderConfig, WarRoomState } from "@/types/warRoom";
+import { GOOGLE_TTS_VOICES } from "@/lib/speech/voices";
 
 export const DEFAULT_EMPIRE_PROFILE: EmpireProfile = {
   empireName: "",
@@ -15,24 +16,31 @@ export const DEFAULT_EMPIRE_PROFILE: EmpireProfile = {
 };
 
 export const DEFAULT_CONFIG: ProviderConfig = {
-  provider: "gemini",
   apiKey: "",
   geminiModel: "gemini-3.8-flash",
-  googleTtsApiKey: "",
-  openRouterModel: "google/gemma-3-27b-it:free",
-  ollamaUrl: "http://localhost:11434",
-  ollamaModel: "llama3.2",
 };
 
 export const STORAGE_KEY = "imperial-war-room-v1";
 
 const AGENT_DEFAULTS: Record<Exclude<AgentId, "memoryUpdater">, AgentProfile> = {
-  almirante: { displayName: "Gran Almirante", avatar: "⚔️", color: "#ef4444", cloudVoiceName: "es-US-Neural2-B", voiceURI: "", pitch: 0.72, rate: 1.02, bio: "" },
-  canciller: { displayName: "Canciller Imperial", avatar: "◈", color: "#3b82f6", cloudVoiceName: "es-US-Neural2-B", voiceURI: "", pitch: 0.92, rate: 0.96, bio: "" },
-  cientifico: { displayName: "Director de Investigación", avatar: "⌬", color: "#a855f7", cloudVoiceName: "es-US-Neural2-B", voiceURI: "", pitch: 1.12, rate: 1.08, bio: "" },
-  logistica: { displayName: "Ministro de Logística", avatar: "⬡", color: "#f59e0b", cloudVoiceName: "es-US-Neural2-B", voiceURI: "", pitch: 0.82, rate: 1, bio: "" },
-  blackops: { displayName: "Director de Black Ops", avatar: "◆", color: "#a1a1aa", cloudVoiceName: "es-US-Neural2-B", voiceURI: "", pitch: 0.58, rate: 0.88, bio: "" },
+  almirante: { displayName: "Gran Almirante", avatar: "⚔️", color: "#ef4444", voiceId: "male-authoritative" },
+  canciller: { displayName: "Canciller Imperial", avatar: "◈", color: "#3b82f6", voiceId: "male-diplomatic" },
+  cientifico: { displayName: "Director de Investigación", avatar: "⌬", color: "#a855f7", voiceId: "male-analytical" },
+  logistica: { displayName: "Ministro de Logística", avatar: "⬡", color: "#f59e0b", voiceId: "female-persuasive" },
+  blackops: { displayName: "Director de Black Ops", avatar: "◆", color: "#a1a1aa", voiceId: "female-strategist" },
 };
+
+function restoreAgentProfile(id: keyof typeof AGENT_DEFAULTS, value: Partial<AgentProfile> & { cloudVoiceName?: string }): AgentProfile {
+  const fallback = AGENT_DEFAULTS[id];
+  const legacyVoice = GOOGLE_TTS_VOICES.find(voice => voice.name === value.cloudVoiceName);
+  const savedVoice = GOOGLE_TTS_VOICES.find(voice => voice.id === value.voiceId);
+  return {
+    displayName: typeof value.displayName === "string" ? value.displayName : fallback.displayName,
+    avatar: typeof value.avatar === "string" ? value.avatar : fallback.avatar,
+    color: typeof value.color === "string" ? value.color : fallback.color,
+    voiceId: savedVoice?.id || legacyVoice?.id || fallback.voiceId,
+  };
+}
 
 export function createDefaultAgentProfiles(): WarRoomState["agentProfiles"] {
   return Object.fromEntries(Object.entries(AGENT_DEFAULTS).map(([id, profile]) => [id, { ...profile }])) as WarRoomState["agentProfiles"];
@@ -61,11 +69,12 @@ export function loadWarRoom(): WarRoomState {
         ...restored,
         empireProfile: { ...DEFAULT_EMPIRE_PROFILE, ...parsed.empireProfile, origin: { ...DEFAULT_EMPIRE_PROFILE.origin, ...parsed.empireProfile?.origin } },
         timeline: Array.isArray(parsed.timeline) ? parsed.timeline : [],
-        agentProfiles: Object.fromEntries(Object.entries(AGENT_DEFAULTS).map(([id, fallback]) => [id, { ...fallback, ...parsed.agentProfiles?.[id] }])) as WarRoomState["agentProfiles"],
+        agentProfiles: Object.fromEntries(Object.entries(AGENT_DEFAULTS).map(([id]) => [id, restoreAgentProfile(id as keyof typeof AGENT_DEFAULTS, parsed.agentProfiles?.[id] || {})])) as WarRoomState["agentProfiles"],
         history: Array.isArray(parsed.history) ? parsed.history : [],
         config: {
-          ...DEFAULT_CONFIG,
-          ...parsed.config,
+          apiKey: parsed.config?.provider && parsed.config.provider !== "gemini"
+            ? parsed.config.googleTtsApiKey || ""
+            : parsed.config?.apiKey || parsed.config?.googleTtsApiKey || "",
           geminiModel: parsed.config?.geminiModel === "gemini-2.5-flash" ? DEFAULT_CONFIG.geminiModel : parsed.config?.geminiModel || DEFAULT_CONFIG.geminiModel,
         },
       };

@@ -17,7 +17,7 @@ export interface CabinetResult { id: AgentId; content: string }
 type AgentProfiles = Record<Exclude<AgentId, "memoryUpdater">, AgentProfile>;
 
 function agentPrompt(id: AgentId, profile: AgentProfile) {
-  return `${AGENT_PROMPTS[id]}\n\n# IDENTIDAD PERSONALIZADA\nNombre y rango: ${profile.displayName}\nBiografía y notas de rol: ${profile.bio || "Sin notas adicionales."}`;
+  return `${AGENT_PROMPTS[id]}\n\n# IDENTIDAD PERSONALIZADA\nNombre y rango: ${profile.displayName}`;
 }
 
 export async function runCabinet(config: ProviderConfig, empire: EmpireProfile, timeline: TimelineEvent[], history: TurnMessage[], input: string, image: string | undefined, profiles: AgentProfiles): Promise<CabinetResult[]> {

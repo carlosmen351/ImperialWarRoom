@@ -1,14 +1,9 @@
 export type AgentId = "almirante" | "canciller" | "cientifico" | "logistica" | "blackops" | "memoryUpdater";
-export type ProviderId = "gemini" | "openrouter" | "ollama";
+export type AgentVoiceId = "male-authoritative" | "male-analytical" | "male-diplomatic" | "female-executive" | "female-strategist" | "female-persuasive";
 
 export interface ProviderConfig {
-  provider: ProviderId;
   apiKey: string;
   geminiModel: string;
-  googleTtsApiKey: string;
-  openRouterModel: string;
-  ollamaUrl: string;
-  ollamaModel: string;
 }
 
 export interface EmpireProfile {
@@ -42,11 +37,7 @@ export interface AgentProfile {
   displayName: string;
   avatar: string;
   color: string;
-  cloudVoiceName: string;
-  voiceURI: string;
-  pitch: number;
-  rate: number;
-  bio: string;
+  voiceId: AgentVoiceId;
 }
 
 export interface TurnMessage {

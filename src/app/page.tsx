@@ -15,6 +15,9 @@ import { speak, speakQueue, stopSpeaking } from "@/lib/speech/tts";
 import { AgentId, TimelineEvent, TurnMessage } from "@/types/warRoom";
 import Image from "next/image";
 
+type WakeLockToken = { release: () => Promise<void>; addEventListener: (type: "release", listener: () => void) => void };
+type NavigatorWithWakeLock = Navigator & { wakeLock?: { request: (type: "screen") => Promise<WakeLockToken> } };
+
 const agentOrder: Exclude<AgentId, "memoryUpdater">[] = ["almirante", "canciller", "cientifico", "logistica", "blackops"];
 
 function summarize(text: string) {
@@ -33,6 +36,7 @@ export default function Home() {
   const [setupOpen, setSetupOpen] = useState(false);
   const [newEmpire, setNewEmpire] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [pttActive, setPttActive] = useState(false);
   const [ttsEnabled, setTtsEnabled] = useState(true);
   const [image, setImage] = useState<string>();
   const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
@@ -42,7 +46,8 @@ export default function Home() {
     const savedState = loadWarRoom();
     queueMicrotask(() => {
       setState(savedState);
-      setSetupOpen(!savedState.empireProfile.empireName);
+      setSetupOpen(!savedState.empireProfile.empireName && Boolean(savedState.config.apiKey.trim()));
+      setSettingsOpen(!savedState.config.apiKey.trim());
       setHydrated(true);
     });
   }, []);
@@ -65,11 +70,39 @@ export default function Home() {
     const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
     navigator.serviceWorker.register(`${basePath}/sw.js`).catch(error => console.error("No se pudo registrar el Service Worker de Imperial War Room.", error));
   }, []);
+  useEffect(() => {
+    if (!busy && !pttActive) return;
+    const wakeLock = (navigator as NavigatorWithWakeLock).wakeLock;
+    if (!wakeLock) return;
+    let active = true;
+    let sentinel: WakeLockToken | undefined;
+    const request = async () => {
+      if (!active || sentinel || document.visibilityState !== "visible") return;
+      try {
+        sentinel = await wakeLock.request("screen");
+        sentinel.addEventListener("release", () => { sentinel = undefined; void request(); });
+      } catch {
+        sentinel = undefined;
+      }
+    };
+    const onVisibilityChange = () => { if (document.visibilityState === "visible") void request(); };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    void request();
+    return () => {
+      active = false;
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      if (sentinel) void sentinel.release().catch(() => undefined);
+    };
+  }, [busy, pttActive]);
 
   const addMessage = (message: TurnMessage) => setState(current => ({ ...current, history: [...current.history, message].slice(-60) }));
 
   const send = async (text: string) => {
     if (!text.trim() || busy) return;
+    if (!state.config.apiKey.trim()) {
+      setSettingsOpen(true);
+      return;
+    }
     const attached = image;
     const userMessage: TurnMessage = { id: crypto.randomUUID(), role: "user", content: text, image: attached, createdAt: Date.now() };
     const historyBeforeTurn = state.history;
@@ -97,7 +130,7 @@ export default function Home() {
         speakQueue(agentOrder.map(agentId => ({
           text: `${state.agentProfiles[agentId].displayName}. ${resultById.get(agentId) || ""}`,
           profile: state.agentProfiles[agentId],
-          config: state.config,
+          apiKey: state.config.apiKey,
         })));
       }
     } finally { setBusy(false); }
@@ -117,13 +150,15 @@ export default function Home() {
       for (let i = 0; i < event.results.length; i++) transcript += event.results[i][0].transcript;
       voiceTextRef.current = transcript;
     };
-    recognition.onerror = event => { if (event.error !== "aborted") alert(`Voz: ${event.error}`); };
-    recognition.start();
+    recognition.onerror = event => { setPttActive(false); if (event.error !== "aborted") alert(`Voz: ${event.error}`); };
+    try { recognition.start(); setPttActive(true); }
+    catch (error) { setPttActive(false); alert(error instanceof Error ? `Voz: ${error.message}` : "No se pudo iniciar el reconocimiento de voz."); }
   };
   const stopVoice = () => {
     const recognition = recognitionRef.current;
-    if (!recognition) return;
+    if (!recognition) { setPttActive(false); return; }
     recognition.onend = () => {
+      setPttActive(false);
       if (voiceTextRef.current.trim()) send(voiceTextRef.current.trim());
       recognition.onend = null;
     };
@@ -156,11 +191,20 @@ export default function Home() {
       if (imported.timeline && (!Array.isArray(imported.timeline) || !imported.timeline.every(event => event && typeof event.id === "string" && typeof event.timestamp === "string" && typeof event.eventSummary === "string" && typeof event.finalDecision === "string" && Array.isArray(event.cabinetOptions)))) throw new Error("La línea del tiempo del archivo tiene un formato inválido.");
       if (!imported.empireProfile && typeof imported.gameMemory !== "string") throw new Error("El archivo no incluye la Constitución del Imperio ni un guardado beta compatible.");
       localStorage.setItem("imperial-war-room-v1", JSON.stringify(imported));
-      setState(loadWarRoom());
-      if (!imported.empireProfile) setSetupOpen(true);
+      const restored = loadWarRoom();
+      setState(restored);
+      setSettingsOpen(!restored.config.apiKey.trim());
+      setSetupOpen(Boolean(restored.config.apiKey.trim() && !restored.empireProfile.empireName));
     } catch (error) { alert(error instanceof Error ? error.message : "No se pudo importar la partida."); }
   };
+  const saveConfig = (config: typeof state.config) => {
+    setState(current => ({ ...current, config }));
+    setSettingsOpen(false);
+    if (!state.empireProfile.empireName) setSetupOpen(true);
+  };
   const isNewProfile = !state.empireProfile.empireName;
+
+  if (!hydrated) return <main className="flex min-h-[100dvh] items-center justify-center bg-[#05070a] text-sm text-sky-200">Preparando la Sala de Guerra…</main>;
 
   return <div className="flex h-[100dvh] flex-col overflow-hidden bg-[#05070a] text-slate-100">
     <header className="flex min-h-[58px] shrink-0 items-center justify-between gap-2 border-b border-slate-800 bg-[#080b10] px-3">
@@ -175,11 +219,11 @@ export default function Home() {
     </header>
     {image && <div className="absolute left-3 top-[66px] z-20 flex items-center gap-2 rounded-lg border border-sky-500/30 bg-slate-950 p-1"><Image src={image} alt="Vista previa" width={48} height={48} unoptimized className="h-12 w-12 rounded object-cover"/><button onClick={() => setImage(undefined)} className="h-7 w-7 text-sm">×</button></div>}
     {storageError && <p role="alert" className="absolute left-2 right-2 top-[62px] z-20 rounded-lg border border-amber-500/30 bg-amber-950/90 p-2 text-xs text-amber-200">{storageError}</p>}
-    <CabinetFeed messages={state.history} busy={busy} profiles={state.agentProfiles} config={state.config}/>
+    <CabinetFeed messages={state.history} busy={busy} profiles={state.agentProfiles} apiKey={state.config.apiKey}/>
     <TacticalControls busy={busy} onSend={send} onImage={handleImage} onStartVoice={startVoice} onStopVoice={stopVoice}/>
     <MemoryDrawer open={memoryOpen} profile={state.empireProfile} timeline={state.timeline} agentProfiles={state.agentProfiles} onClose={() => setMemoryOpen(false)} onProfileChange={empireProfile => setState(current => ({ ...current, empireProfile, gameTitle: empireProfile.empireName || current.gameTitle }))} onDecisionChange={setDecision}/>
-    <SettingsModal open={settingsOpen} config={state.config} onClose={() => setSettingsOpen(false)} onChange={config => setState(current => ({ ...current, config }))} onExport={exportState} onImport={file => void importState(file)}/>
-    <CabinetDossiersModal open={dossiersOpen} profiles={state.agentProfiles} onClose={() => setDossiersOpen(false)} onChange={agentProfiles => setState(current => ({ ...current, agentProfiles }))} onTestVoice={profile => speak(`Prueba de voz para ${profile.displayName}.`, profile, state.config)}/>
-    <EmpireSetupModal key={newEmpire ? "new" : isNewProfile ? "initial" : "edit"} open={setupOpen} initialProfile={newEmpire || isNewProfile ? DEFAULT_EMPIRE_PROFILE : state.empireProfile} config={state.config} onConfigureProvider={() => { setSetupOpen(false); setSettingsOpen(true); }} onClose={() => { setSetupOpen(false); setNewEmpire(false); }} onSave={saveEmpire}/>
+    <SettingsModal open={settingsOpen} required={!state.config.apiKey.trim()} config={state.config} onClose={() => setSettingsOpen(false)} onSave={saveConfig} onExport={exportState} onImport={file => void importState(file)}/>
+    <CabinetDossiersModal open={dossiersOpen} profiles={state.agentProfiles} onClose={() => setDossiersOpen(false)} onChange={agentProfiles => setState(current => ({ ...current, agentProfiles }))} onTestVoice={profile => speak("A sus órdenes.", profile, state.config.apiKey)}/>
+    <EmpireSetupModal key={newEmpire ? "new" : isNewProfile ? "initial" : "edit"} open={setupOpen} initialProfile={newEmpire || isNewProfile ? DEFAULT_EMPIRE_PROFILE : state.empireProfile} config={state.config} onConfigureApiKey={() => setSettingsOpen(true)} onClose={() => { setSetupOpen(false); setNewEmpire(false); }} onSave={saveEmpire}/>
   </div>;
 }

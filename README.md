@@ -20,17 +20,19 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-## Imperial War Room beta
+## Imperial War Room 1.0.0
 
-The app is a client-side Stellaris cabinet. Configure a Gemini, OpenRouter, or Ollama provider from **Ajustes IA**. On first launch, use **Analizar resumen de Stellaris** to extract the empire constitution from a screenshot; review or edit the extracted fields before saving. The constitution is included in every minister and Black Ops prompt.
+Imperial War Room is a client-side Stellaris cabinet. On first launch, enter one Google API Key; it is stored only in this browser and used for Google Gemini API and Google Cloud Text-to-Speech. Enable both services for the associated Google Cloud project. Gemini defaults to `gemini-3.8-flash`; **⚙** lets you choose `gemini-3.8-pro`, `gemini-4-hydrogen`, or enter a custom model ID.
+
+Use **Analizar resumen de Stellaris** to extract the empire constitution from a screenshot; review or edit the extracted fields before saving. The constitution is included in every minister and Black Ops prompt.
 
 **📋** opens the empire constitution and chronological cabinet-decision timeline. Each completed consultation is recorded with one-line recommendations from all five cabinet members. Approve an option or edit the verdict; the five latest events are provided as historical context on later consultations.
 
-**🪪 Gabinete** opens the five editable member dossiers, including name/rank, compressed avatar, tactical color, Google neural voice, browser fallback voice, pitch, speed, and role notes. Dossier changes are persisted locally and are reflected in chat cards, voice playback, and system prompts.
+**🪪 Gabinete** opens the five member dossiers. Edit each member's name and one of six Google Neural2 voices; the optional visual settings contain the accent color and avatar/photo. **🔊 Probar** plays a short greeting. Voice pitch and speed are left to the natural cadence of each member's system prompt.
 
-Gemini defaults to `gemini-3.8-flash`; **Ajustes IA** also offers `gemini-3.8-pro`, `gemini-4-hydrogen`, and a freeform model ID. Google Cloud Text-to-Speech is the primary speech engine. It reuses the configured Google API key when Gemini is selected, or accepts a separate TTS key; browser speech synthesis is the automatic fallback. Enable the Cloud Text-to-Speech API (and billing, if required for your account) for the Google key.
+The cabinet consults four ministers in parallel, then runs the final Black Ops audit. Push-to-Talk, camera input, the automatic crisis timeline, and Screen Wake Lock during voice input and consultations are supported. Google Cloud Text-to-Speech is the primary voice engine; browser speech synthesis is the silent emergency fallback.
 
-All game state and provider settings are stored in browser `localStorage`. API credentials remain on the device and are sent directly to the selected provider or Google Cloud TTS. Export/import a save from the controls in **Ajustes IA**.
+All game state and the API Key are stored in browser `localStorage`. The key is sent directly from the browser to the Google APIs. Export/import a save from **⚙**.
 
 ## Learn More
 

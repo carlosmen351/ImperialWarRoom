@@ -1,6 +1,17 @@
 # Changelog
 
-## [0.0.1-beta.3] - 2026-11-20
+## [1.0.0] - 2026-11-19
+
+### Phase 4 — Simplification and final polish
+
+- Consolidated Gemini and Google Cloud Text-to-Speech on one Google API Key, requested on first launch when no key is saved, with no credential embedded in the application.
+- Retired alternate LLM providers and separate speech credentials. Gemini model presets and custom model IDs remain configurable.
+- Added six fixed Neural2 voices for the cabinet and removed manual pitch, speaking-rate, and browser-voice controls. Agent prompts now direct natural, role-specific pacing and punctuation.
+- Simplified cabinet dossiers to name, assigned voice, quick voice test, and optional collapsed visual customization.
+- Added Screen Wake Lock during Push-to-Talk and cabinet deliberations, with reacquisition when returning to the app and graceful handling where unsupported.
+- Migrated beta saves to the unified key/model and six-voice configuration while preserving empire profiles, decisions, and chat history.
+
+## [0.0.1-beta.3] - 2026-11-19
 
 ### Phase 3 — Gemini model refresh and Google Cloud neural speech
 

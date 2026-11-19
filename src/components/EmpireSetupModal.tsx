@@ -14,12 +14,12 @@ const textFields: { key: Exclude<keyof EmpireProfile, "origin" | "rulerTraits" |
   { key: "shipAppearance", label: "Apariencia de naves" },
 ];
 
-export default function EmpireSetupModal({ open, initialProfile, config, onClose, onConfigureProvider, onSave }: {
+export default function EmpireSetupModal({ open, initialProfile, config, onClose, onConfigureApiKey, onSave }: {
   open: boolean;
   initialProfile: EmpireProfile;
   config: ProviderConfig;
   onClose: () => void;
-  onConfigureProvider: () => void;
+  onConfigureApiKey: () => void;
   onSave: (profile: EmpireProfile) => void;
 }) {
   const [profile, setProfile] = useState(initialProfile);
@@ -54,8 +54,8 @@ export default function EmpireSetupModal({ open, initialProfile, config, onClose
     <section className="max-h-[92dvh] w-full max-w-xl overflow-y-auto rounded-2xl border border-sky-500/30 bg-[#090e15] p-4 shadow-2xl">
       <header className="mb-4 flex items-center justify-between"><div><p className="text-[10px] tracking-[.2em] text-sky-500">NUEVA PARTIDA</p><h2 className="font-bold text-sky-200">Constitución del Imperio</h2></div><button onClick={onClose} className="h-9 w-9 rounded-full border border-slate-700">×</button></header>
       <label className="mb-3 flex h-12 cursor-pointer items-center justify-center rounded-lg border border-sky-500/40 bg-sky-900/20 text-sm font-bold text-sky-100">{busy ? "Analizando imagen..." : "📷 Analizar resumen de Stellaris"}<input type="file" accept="image/*" capture="environment" onChange={extract} disabled={busy} className="hidden"/></label>
-      <p className="mb-3 text-xs leading-5 text-slate-500">La imagen se procesa en el proveedor IA seleccionado. Revisa y corrige los campos antes de guardar.</p>
-      {config.provider !== "ollama" && !config.apiKey && <p className="mb-3 rounded-lg border border-amber-500/30 bg-amber-950/20 p-2 text-xs text-amber-200">Añade una clave API para extraer los datos automáticamente o captura los campos manualmente. <button onClick={onConfigureProvider} className="ml-1 underline">Configurar proveedor</button></p>}
+      <p className="mb-3 text-xs leading-5 text-slate-500">La imagen se procesa con Google Gemini. Revisa y corrige los campos antes de guardar.</p>
+      {!config.apiKey.trim() && <p className="mb-3 rounded-lg border border-amber-500/30 bg-amber-950/20 p-2 text-xs text-amber-200">Añade tu Google API Key para extraer los datos automáticamente o captura los campos manualmente. <button onClick={onConfigureApiKey} className="ml-1 underline">Configurar API Key</button></p>}
       {error && <p role="alert" className="mb-3 rounded-lg border border-red-500/30 bg-red-950/30 p-2 text-xs text-red-200">{error}</p>}
       <div className="grid gap-3 sm:grid-cols-2">{textFields.map(field => <label key={field.key} className="block text-xs text-slate-400">{field.label}<input value={profile[field.key]} onChange={event => update({ [field.key]: event.target.value })} className="mt-1 h-10 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 text-sm text-slate-100"/></label>)}
         {listField("rulerTraits", "Rasgos del gobernante (separados por coma)")}{listField("speciesTraits", "Rasgos de especie")}{listField("ethics", "Éticas")}{listField("civics", "Cívicas")}

@@ -1,9 +1,10 @@
-import { AgentProfile, ProviderConfig } from "@/types/warRoom";
+import { AgentProfile } from "@/types/warRoom";
+import { GOOGLE_TTS_VOICES } from "@/lib/speech/voices";
 
 export interface SpeechLine {
   text: string;
   profile: AgentProfile;
-  config: ProviderConfig;
+  apiKey: string;
 }
 
 let playbackId = 0;
@@ -41,22 +42,16 @@ function stopCurrentPlayback() {
   return playbackId;
 }
 
-function playNative(text: string, profile?: AgentProfile, id = playbackId) {
+function playNative(text: string, languageCode: string, id = playbackId) {
   if (!("speechSynthesis" in window) || !text || id !== playbackId) return;
   const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = "es-MX";
-  utterance.pitch = profile?.pitch ?? 1;
-  utterance.rate = profile?.rate ?? 1;
-  if (profile?.voiceURI) {
-    const voice = window.speechSynthesis.getVoices().find(item => item.voiceURI === profile.voiceURI);
-    if (voice) utterance.voice = voice;
-  }
+  utterance.lang = languageCode;
   window.speechSynthesis.speak(utterance);
 }
 
-async function playCloud(text: string, profile: AgentProfile | undefined, config: ProviderConfig | undefined, id: number) {
-  const apiKey = config?.googleTtsApiKey.trim() || (config?.provider === "gemini" ? config.apiKey.trim() : "");
+async function playCloud(text: string, voiceId: AgentProfile["voiceId"], apiKey: string, id: number) {
   if (!apiKey || !text || id !== playbackId || typeof Audio === "undefined") return false;
+  const voice = GOOGLE_TTS_VOICES.find(item => item.id === voiceId) || GOOGLE_TTS_VOICES[0];
 
   const controller = new AbortController();
   activeRequest = controller;
@@ -67,12 +62,8 @@ async function playCloud(text: string, profile: AgentProfile | undefined, config
       signal: controller.signal,
       body: JSON.stringify({
         input: { text },
-        voice: { languageCode: "es-US", name: profile?.cloudVoiceName || "es-US-Neural2-B" },
-        audioConfig: {
-          audioEncoding: "MP3",
-          speakingRate: profile?.rate ?? 1.05,
-          pitch: ((profile?.pitch ?? 1) - 1) * 3,
-        },
+        voice: { languageCode: voice.languageCode, name: voice.name },
+        audioConfig: { audioEncoding: "MP3" },
       }),
     });
     if (!response.ok) throw new Error(`TTS respondió HTTP ${response.status}`);
@@ -100,24 +91,24 @@ async function playCloud(text: string, profile: AgentProfile | undefined, config
       audio.onerror = () => finish(false);
       audio.play().catch(() => finish(false));
     });
-  } catch (error) {
-    if (!controller.signal.aborted) console.warn("Google Cloud TTS falló; se usará la voz del navegador.", error);
+  } catch {
     return false;
   } finally {
     if (activeRequest === controller) activeRequest = null;
   }
 }
 
-async function playLine(text: string, profile: AgentProfile | undefined, config: ProviderConfig | undefined, id: number) {
+async function playLine(text: string, profile: AgentProfile | undefined, apiKey: string, id: number) {
   const cleanedText = cleanSpeechText(text);
   if (!cleanedText || id !== playbackId) return;
-  const played = await playCloud(cleanedText, profile, config, id);
-  if (!played && id === playbackId) playNative(cleanedText, profile, id);
+  const voice = GOOGLE_TTS_VOICES.find(item => item.id === profile?.voiceId) || GOOGLE_TTS_VOICES[0];
+  const played = await playCloud(cleanedText, voice.id, apiKey, id);
+  if (!played && id === playbackId) playNative(cleanedText, voice.languageCode, id);
 }
 
-export function speak(text: string, profile?: AgentProfile, config?: ProviderConfig, stopFirst = true) {
+export function speak(text: string, profile: AgentProfile, apiKey: string, stopFirst = true) {
   const id = stopFirst ? stopCurrentPlayback() : playbackId;
-  void playLine(text, profile, config, id);
+  void playLine(text, profile, apiKey, id);
 }
 
 export function speakQueue(lines: SpeechLine[]) {
@@ -132,7 +123,8 @@ export function speakQueue(lines: SpeechLine[]) {
       void next();
       return;
     }
-    const played = await playCloud(text, line.profile, line.config, id);
+    const voice = GOOGLE_TTS_VOICES.find(item => item.id === line.profile.voiceId) || GOOGLE_TTS_VOICES[0];
+    const played = await playCloud(text, voice.id, line.apiKey, id);
     if (id !== playbackId) return;
     if (played) {
       void next();
@@ -143,11 +135,7 @@ export function speakQueue(lines: SpeechLine[]) {
       return;
     }
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = "es-MX";
-    utterance.pitch = line.profile.pitch;
-    utterance.rate = line.profile.rate;
-    const voice = window.speechSynthesis.getVoices().find(item => item.voiceURI === line.profile.voiceURI);
-    if (voice) utterance.voice = voice;
+    utterance.lang = voice.languageCode;
     utterance.onend = () => { void next(); };
     utterance.onerror = () => { void next(); };
     window.speechSynthesis.speak(utterance);
