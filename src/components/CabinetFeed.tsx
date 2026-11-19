@@ -7,6 +7,13 @@ import Image from "next/image";
 type Profiles = Record<Exclude<AgentId, "memoryUpdater">, AgentProfile>;
 
 const agentIds: Exclude<AgentId, "memoryUpdater">[] = ["almirante", "canciller", "cientifico", "logistica", "blackops"];
+const agentDivisions: Record<Exclude<AgentId, "memoryUpdater">, string> = {
+  almirante: "Militar",
+  canciller: "Diplomacia",
+  cientifico: "Ciencia",
+  logistica: "Economía",
+  blackops: "Inteligencia",
+};
 
 function isAgentId(role: AgentId): role is Exclude<AgentId, "memoryUpdater"> {
   return agentIds.includes(role as Exclude<AgentId, "memoryUpdater">);
@@ -23,8 +30,9 @@ export default function CabinetFeed({ messages, busy, profiles, apiKey }: { mess
       if (message.role === "user") return <div key={message.id} className="mb-3 ml-10 rounded-2xl rounded-tr-sm border border-sky-500/20 bg-sky-950/40 px-4 py-3 text-sm text-slate-100">{message.content}{message.image && <Image src={message.image} alt="Captura adjunta" width={512} height={288} unoptimized className="mt-3 max-h-44 w-auto rounded-lg" />}</div>;
       if (!isAgentId(message.role)) return null;
       const profile = profiles[message.role];
+      const accentColor = profile.color === "#000000" ? "#a1a1aa" : profile.color;
       return <article key={message.id} className="mb-3 rounded-xl border bg-[#0b1018]/95 p-3 shadow-lg" style={{ borderColor: `${profile.color}88` }}>
-        <div className="mb-2 flex items-center justify-between"><div className="flex min-w-0 items-center gap-2 text-xs font-bold uppercase tracking-[0.12em] text-slate-300"><span className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full border text-base" style={{ borderColor: profile.color, color: profile.color }}><Avatar value={profile.avatar}/></span><span className="truncate" style={{ color: profile.color }}>{profile.displayName}</span></div><button onClick={() => speak(message.content, profile, apiKey)} className="rounded-full border border-slate-700 px-2 py-1 text-xs text-slate-300" aria-label={`Escuchar ${profile.displayName}`}>▶</button></div>
+        <div className="mb-2 flex items-center justify-between"><div className="flex min-w-0 items-center gap-2 text-xs font-bold uppercase tracking-[0.12em] text-slate-300"><span className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full border text-base" style={{ borderColor: accentColor, color: accentColor }}><Avatar value={profile.avatar}/></span><span className="min-w-0 truncate" style={{ color: accentColor }}>{profile.displayName}<span className="ml-2 text-[9px] font-medium tracking-widest text-slate-500">{agentDivisions[message.role]}</span></span></div><button onClick={() => speak(message.content, profile, apiKey)} className="rounded-full border border-slate-700 px-2 py-1 text-xs text-slate-300" aria-label={`Escuchar ${profile.displayName}`}>▶</button></div>
         <p className="text-sm leading-5 text-slate-200">{message.content}</p>
       </article>;
     })}

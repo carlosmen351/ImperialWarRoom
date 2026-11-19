@@ -6,11 +6,11 @@ import { AgentId, AgentProfile, EmpireProfile, TimelineEvent } from "@/types/war
 type Profiles = Record<Exclude<AgentId, "memoryUpdater">, AgentProfile>;
 
 const agentNames: Record<Exclude<AgentId, "memoryUpdater">, string> = {
-  almirante: "Gran Almirante",
-  canciller: "Canciller Imperial",
-  cientifico: "Director de Investigación",
-  logistica: "Ministro de Logística",
-  blackops: "Black Ops",
+  almirante: "General",
+  canciller: "Embajador",
+  cientifico: "Doctor",
+  logistica: "Gobernador",
+  blackops: "Agente",
 };
 
 function formatTime(value: string) {

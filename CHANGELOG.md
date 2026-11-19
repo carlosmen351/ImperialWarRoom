@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.0.1] - 2026-11-19
+
+### Cabinet identity labels and visuals
+
+- Renamed the default cabinet roles to General, Embajador, Doctor, Gobernador, and Agente.
+- Updated default tactical colors and assigned two role-specific icon choices per dossier.
+- Reflected division labels in cabinet response cards and the decision timeline.
+- Migrated unchanged beta/1.0.0 defaults to the new labels and visuals while preserving user customizations.
+
 ## [1.0.0] - 2026-11-19
 
 ### Phase 4 — Simplification and final polish
