@@ -1,0 +1,11 @@
+{
+  "name": "Imperial War Room",
+  "short_name": "War Room",
+  "description": "Sala de guerra táctica multiagente para Stellaris",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#05070a",
+  "theme_color": "#05070a",
+  "orientation": "portrait"
+}
