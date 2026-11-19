@@ -10,6 +10,43 @@ export interface ProviderConfig {
   ollamaModel: string;
 }
 
+export interface EmpireProfile {
+  empireName: string;
+  rulerNameAndTitle: string;
+  rulerTraits: string[];
+  homeworld: string;
+  species: string;
+  speciesTraits: string[];
+  ethics: string[];
+  government: string;
+  civics: string[];
+  origin: { name: string; description: string };
+  shipAppearance: string;
+}
+
+export interface TimelineOption {
+  agentId: AgentId;
+  stance: string;
+}
+
+export interface TimelineEvent {
+  id: string;
+  timestamp: string;
+  eventSummary: string;
+  cabinetOptions: TimelineOption[];
+  finalDecision: string;
+}
+
+export interface AgentProfile {
+  displayName: string;
+  avatar: string;
+  color: string;
+  voiceURI: string;
+  pitch: number;
+  rate: number;
+  bio: string;
+}
+
 export interface TurnMessage {
   id: string;
   role: "user" | AgentId;
@@ -20,7 +57,9 @@ export interface TurnMessage {
 
 export interface WarRoomState {
   gameTitle: string;
-  gameMemory: string;
+  empireProfile: EmpireProfile;
+  timeline: TimelineEvent[];
+  agentProfiles: Record<Exclude<AgentId, "memoryUpdater">, AgentProfile>;
   history: TurnMessage[];
   config: ProviderConfig;
 }

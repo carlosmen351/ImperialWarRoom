@@ -36,7 +36,11 @@ export async function sendPrompt(config: ProviderConfig, systemPrompt: string, m
 
   const response = await fetch(`${config.ollamaUrl.replace(/\/$/, "")}/api/chat`, {
     method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ model: config.ollamaModel, stream: false, messages: [{ role: "system", content: systemPrompt }, ...messages.map(m => ({ role: m.role, content: typeof m.content === "string" ? m.content : m.content.map(c => c.text || "").join("\n") }))] }),
+    body: JSON.stringify({ model: config.ollamaModel, stream: false, messages: [{ role: "system", content: systemPrompt }, ...messages.map(m => ({
+      role: m.role,
+      content: typeof m.content === "string" ? m.content : m.content.filter(c => c.type === "text").map(c => c.text || "").join("\n"),
+      images: typeof m.content === "string" ? undefined : m.content.filter(c => c.type === "image_url").map(c => (c.image_url?.url || "").split(",")[1]).filter((image): image is string => Boolean(image)),
+    }))] }),
   });
   if (!response.ok) throw new Error(`Ollama: ${response.status} ${await response.text()}`);
   const payload = await response.json() as { message?: { content?: string } };

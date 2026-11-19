@@ -20,6 +20,16 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Imperial War Room beta
+
+The app is a client-side Stellaris cabinet. Configure a Gemini, OpenRouter, or Ollama provider from **Ajustes IA**. On first launch, use **Analizar resumen de Stellaris** to extract the empire constitution from a screenshot; review or edit the extracted fields before saving. The constitution is included in every minister and Black Ops prompt.
+
+**📋** opens the empire constitution and chronological cabinet-decision timeline. Each completed consultation is recorded with one-line recommendations from all five cabinet members. Approve an option or edit the verdict; the five latest events are provided as historical context on later consultations.
+
+**🪪 Gabinete** opens the five editable member dossiers, including name/rank, compressed avatar, tactical color, browser voice, pitch, speed, and role notes. Dossier changes are persisted locally and are reflected in chat cards, voice playback, and system prompts.
+
+All game state and provider settings are stored in browser `localStorage`. API credentials remain on the device and are sent directly to the selected provider. Export/import a save from the controls in **Ajustes IA**.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

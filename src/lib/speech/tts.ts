@@ -1,19 +1,43 @@
-const voices: Record<string, { pitch: number; rate: number }> = {
-  almirante: { pitch: 0.72, rate: 1.02 }, canciller: { pitch: 0.92, rate: 0.96 },
-  cientifico: { pitch: 1.12, rate: 1.08 }, logistica: { pitch: 0.82, rate: 1 },
-  blackops: { pitch: 0.58, rate: 0.88 },
-};
+import { AgentProfile } from "@/types/warRoom";
 
-export function speak(text: string, agent = "blackops", stopFirst = true) {
+export interface SpeechLine {
+  text: string;
+  profile: AgentProfile;
+}
+
+export function speak(text: string, profile?: AgentProfile, stopFirst = true) {
   if (!("speechSynthesis" in window)) return;
   if (stopFirst) window.speechSynthesis.cancel();
   const utterance = new SpeechSynthesisUtterance(text);
   utterance.lang = "es-MX";
-  utterance.pitch = voices[agent]?.pitch ?? 1;
-  utterance.rate = voices[agent]?.rate ?? 1;
+  utterance.pitch = profile?.pitch ?? 1;
+  utterance.rate = profile?.rate ?? 1;
+  if (profile?.voiceURI) {
+    const voice = window.speechSynthesis.getVoices().find(item => item.voiceURI === profile.voiceURI);
+    if (voice) utterance.voice = voice;
+  }
   window.speechSynthesis.speak(utterance);
 }
 
+export function speakQueue(lines: SpeechLine[]) {
+  if (!("speechSynthesis" in window)) return;
+  window.speechSynthesis.cancel();
+  const queue = [...lines];
+  const next = () => {
+    const line = queue.shift();
+    if (!line) return;
+    const utterance = new SpeechSynthesisUtterance(line.text);
+    utterance.lang = "es-MX";
+    utterance.pitch = line.profile.pitch;
+    utterance.rate = line.profile.rate;
+    const voice = window.speechSynthesis.getVoices().find(item => item.voiceURI === line.profile.voiceURI);
+    if (voice) utterance.voice = voice;
+    utterance.onend = next;
+    window.speechSynthesis.speak(utterance);
+  };
+  next();
+}
+
 export function stopSpeaking() {
-  window.speechSynthesis?.cancel();
+  if ("speechSynthesis" in window) window.speechSynthesis.cancel();
 }

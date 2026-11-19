@@ -2,7 +2,7 @@
 
 import { ProviderConfig } from "@/types/warRoom";
 
-export default function SettingsModal({ open, config, onClose, onChange }: { open: boolean; config: ProviderConfig; onClose: () => void; onChange: (config: ProviderConfig) => void }) {
+export default function SettingsModal({ open, config, onClose, onChange, onExport, onImport }: { open: boolean; config: ProviderConfig; onClose: () => void; onChange: (config: ProviderConfig) => void; onExport: () => void; onImport: (file: File) => void }) {
   if (!open) return null;
   const set = (patch: Partial<ProviderConfig>) => onChange({ ...config, ...patch });
   return <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/75 p-3 sm:items-center"><section className="w-full max-w-md rounded-2xl border border-slate-700 bg-[#0a0f16] p-4">
@@ -13,5 +13,6 @@ export default function SettingsModal({ open, config, onClose, onChange }: { ope
     {config.provider === "openrouter" && <><label className="block text-xs text-slate-400">Modelo</label><input value={config.openRouterModel} onChange={event => set({ openRouterModel: event.target.value })} className="mt-1 h-11 w-full rounded-lg border border-slate-700 bg-slate-950 px-3" /></>}
     {config.provider === "ollama" && <div className="grid grid-cols-2 gap-2"><div><label className="block text-xs text-slate-400">URL</label><input value={config.ollamaUrl} onChange={event => set({ ollamaUrl: event.target.value })} className="mt-1 h-11 w-full rounded-lg border border-slate-700 bg-slate-950 px-2 text-xs" /></div><div><label className="block text-xs text-slate-400">Modelo</label><input value={config.ollamaModel} onChange={event => set({ ollamaModel: event.target.value })} className="mt-1 h-11 w-full rounded-lg border border-slate-700 bg-slate-950 px-2 text-xs" /></div></div>}
     <p className="mt-3 text-[11px] leading-4 text-amber-300/70">Las claves se guardan localmente en este dispositivo y se usan mediante llamadas directas desde el navegador.</p>
+    <div className="mt-4 grid grid-cols-2 gap-2"><button onClick={onExport} className="h-10 rounded-lg border border-slate-700 text-xs">Exportar partida JSON</button><label className="flex h-10 cursor-pointer items-center justify-center rounded-lg border border-slate-700 text-xs">Importar partida JSON<input type="file" accept="application/json,.json" className="hidden" onChange={event => { if (event.target.files?.[0]) onImport(event.target.files[0]); event.target.value = ""; }}/></label></div>
   </section></div>;
 }
