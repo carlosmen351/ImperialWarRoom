@@ -3,6 +3,7 @@ export type AgentVoiceId = "male-authoritative" | "male-analytical" | "male-dipl
 
 export interface ProviderConfig {
   apiKey: string;
+  ttsApiKey: string;
   geminiModel: string;
 }
 

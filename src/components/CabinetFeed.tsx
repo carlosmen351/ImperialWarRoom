@@ -23,7 +23,7 @@ function Avatar({ value }: { value: string }) {
   return value.startsWith("data:image/") ? <Image src={value} alt="" width={32} height={32} unoptimized className="h-full w-full rounded-full object-cover"/> : <span>{value}</span>;
 }
 
-export default function CabinetFeed({ messages, busy, profiles, apiKey, busyLabel = "Gabinete deliberando..." }: { messages: TurnMessage[]; busy: boolean; profiles: Profiles; apiKey: string; busyLabel?: string }) {
+export default function CabinetFeed({ messages, busy, profiles, ttsApiKey, busyLabel = "Gabinete deliberando..." }: { messages: TurnMessage[]; busy: boolean; profiles: Profiles; ttsApiKey: string; busyLabel?: string }) {
   return <main className="flex-1 overflow-y-auto px-3 pb-32 pt-3" aria-live="polite">
     {messages.length === 0 && <div className="mx-auto mt-24 max-w-xs text-center text-sm text-slate-500"><div className="mx-auto mb-4 h-16 w-16 rounded-full border border-sky-500/30 bg-sky-500/5"/><p>Cuartel general listo.</p><p className="mt-1 text-xs">Presiona el micrófono o escribe una consulta.</p></div>}
     {messages.map(message => {
@@ -32,7 +32,7 @@ export default function CabinetFeed({ messages, busy, profiles, apiKey, busyLabe
       const profile = profiles[message.role];
       const accentColor = profile.color === "#000000" ? "#a1a1aa" : profile.color;
       return <article key={message.id} className="mb-3 rounded-xl border bg-[#0b1018]/95 p-3 shadow-lg" style={{ borderColor: `${profile.color}88` }}>
-        <div className="mb-2 flex items-center justify-between"><div className="flex min-w-0 items-center gap-2 text-xs font-bold uppercase tracking-[0.12em] text-slate-300"><span className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full border text-base" style={{ borderColor: accentColor, color: accentColor }}><Avatar value={profile.avatar}/></span><span className="min-w-0 truncate" style={{ color: accentColor }}>{profile.displayName}<span className="ml-2 text-[9px] font-medium tracking-widest text-slate-500">{agentDivisions[message.role]}</span></span></div><button onClick={() => speak(message.content, profile, apiKey)} className="rounded-full border border-slate-700 px-2 py-1 text-xs text-slate-300" aria-label={`Escuchar ${profile.displayName}`}>▶</button></div>
+        <div className="mb-2 flex items-center justify-between"><div className="flex min-w-0 items-center gap-2 text-xs font-bold uppercase tracking-[0.12em] text-slate-300"><span className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full border text-base" style={{ borderColor: accentColor, color: accentColor }}><Avatar value={profile.avatar}/></span><span className="min-w-0 truncate" style={{ color: accentColor }}>{profile.displayName}<span className="ml-2 text-[9px] font-medium tracking-widest text-slate-500">{agentDivisions[message.role]}</span></span></div><button onClick={() => speak(message.content, profile, ttsApiKey)} className="rounded-full border border-slate-700 px-2 py-1 text-xs text-slate-300" aria-label={`Escuchar ${profile.displayName}`}>▶</button></div>
         <p className="text-sm leading-5 text-slate-200">{message.content}</p>
       </article>;
     })}

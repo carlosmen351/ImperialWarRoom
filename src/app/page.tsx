@@ -153,7 +153,7 @@ export default function Home() {
         const result = await runPrivateAgent(state.config, state.empireProfile, state.timeline, thread, text, attached, activeAgent, state.agentProfiles, newlyAcquired);
         addChatMessage(activeAgent, createMessage(result.id, result.content));
         traitChangesRef.current[activeAgent] = (traitChangesRef.current[activeAgent] || []).filter(trait => !newlyAcquired.includes(trait));
-        if (ttsEnabled) enqueueSpeech({ text: `${state.agentProfiles[activeAgent].displayName}. ${result.content}`, profile: state.agentProfiles[activeAgent], apiKey: state.config.apiKey });
+        if (ttsEnabled) enqueueSpeech({ text: `${state.agentProfiles[activeAgent].displayName}. ${result.content}`, profile: state.agentProfiles[activeAgent], ttsApiKey: state.config.ttsApiKey });
         if (/registra(?:r)?\s+(?:esto|esta decisi[oó]n|la decisi[oó]n).{0,50}(?:l[ií]nea del tiempo|timeline)/i.test(text)) {
           const event: TimelineEvent = {
             id: crypto.randomUUID(),
@@ -182,7 +182,7 @@ export default function Home() {
             addEmergencyMessage(createMessage(result.id, result.content));
             const usedTraits = newTraits[result.id] || [];
             traitChangesRef.current[result.id] = (traitChangesRef.current[result.id] || []).filter(trait => !usedTraits.includes(trait));
-            if (ttsEnabled) enqueueSpeech({ text: `${state.agentProfiles[result.id].displayName}. ${result.content}`, profile: state.agentProfiles[result.id], apiKey: state.config.apiKey });
+            if (ttsEnabled) enqueueSpeech({ text: `${state.agentProfiles[result.id].displayName}. ${result.content}`, profile: state.agentProfiles[result.id], ttsApiKey: state.config.ttsApiKey });
           },
         );
         const event: TimelineEvent = {
@@ -292,6 +292,22 @@ export default function Home() {
     setSettingsOpen(false);
     if (!state.empireProfile.empireName) setSetupOpen(true);
   };
+  const clearAppData = async () => {
+    const confirmed = window.confirm("¿Borrar todos los datos guardados de Imperial War Room en este dispositivo? Se eliminarán el imperio, historial, línea del tiempo y ambas API Keys. La aplicación se reiniciará.");
+    if (!confirmed) return;
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+      if ("caches" in window) {
+        const cacheNames = await caches.keys();
+        await Promise.all(cacheNames
+          .filter(name => name.startsWith("imperial-war-room-"))
+          .map(name => caches.delete(name)));
+      }
+      window.location.reload();
+    } catch (error) {
+      alert(error instanceof Error ? `No se pudieron borrar todos los datos: ${error.message}` : "No se pudieron borrar todos los datos.");
+    }
+  };
   const isNewProfile = !state.empireProfile.empireName;
 
   if (!hydrated) return <main className="flex min-h-[100dvh] items-center justify-center bg-[#05070a] text-sm text-sky-200">Preparando el Comunicador de Comando…</main>;
@@ -313,6 +329,7 @@ export default function Home() {
         <button onClick={() => setDossiersOpen(true)} title="Editar Credenciales" aria-label="Editar Credenciales" className="h-9 rounded-lg border border-slate-700 px-2 text-xs">🪪<span className="ml-1 hidden lg:inline">Gabinete</span></button>
         <button onClick={() => setManualWakeLock(value => !value)} title="Alternar Wake Lock" aria-label="Alternar Wake Lock" aria-pressed={manualWakeLock} className={`h-9 rounded-lg border px-2 text-sm ${manualWakeLock ? "border-emerald-500/60 text-emerald-300" : "border-slate-700"}`}>🔒</button>
         <button onClick={() => { setTtsEnabled(value => !value); if (ttsEnabled) stopSpeaking(); }} title="Alternar lectura automática" aria-label="Alternar lectura automática" aria-pressed={ttsEnabled} className="h-9 rounded-lg border border-slate-700 px-2 text-sm">{ttsEnabled ? "🔊" : "🔇"}</button>
+        <button onClick={() => void clearAppData()} title="Borrar todos los datos guardados" aria-label="Borrar todos los datos guardados" className="h-9 rounded-lg border border-red-900/70 px-2 text-sm text-red-300">🧹</button>
         <button onClick={() => setSettingsOpen(true)} title="Configuración" aria-label="Configuración" className="h-9 rounded-lg border border-slate-700 px-2 text-sm">⚙️</button>
         <button onClick={startNewEmpire} title="Nuevo Imperio" aria-label="Nuevo Imperio" className="h-9 rounded-lg border border-slate-700 px-2 text-xs">＋</button>
       </div>
@@ -324,7 +341,7 @@ export default function Home() {
     {view === "private" && activeAgent && <>
       {image && <div className="absolute left-3 top-[66px] z-20 flex items-center gap-2 rounded-lg border border-sky-500/30 bg-slate-950 p-1"><Image src={image} alt="Vista previa" width={48} height={48} unoptimized className="h-12 w-12 rounded object-cover"/><button onClick={() => setImage(undefined)} className="h-7 w-7 text-sm">×</button></div>}
       <AgentTraitsBar profile={state.agentProfiles[activeAgent]} onChange={traits => updateAgentProfiles({ ...state.agentProfiles, [activeAgent]: { ...state.agentProfiles[activeAgent], traits } })}/>
-      <CabinetFeed messages={messages} busy={busy} profiles={state.agentProfiles} apiKey={state.config.apiKey} busyLabel={`${privateTitle} analizando…`}/>
+      <CabinetFeed messages={messages} busy={busy} profiles={state.agentProfiles} ttsApiKey={state.config.ttsApiKey} busyLabel={`${privateTitle} analizando…`}/>
       <TacticalControls busy={busy} onSend={send} onImage={handleImage} onStartVoice={startVoice} onStopVoice={stopVoice} placeholder={`Mensaje privado para ${privateTitle}…`}/>
     </>}
 
@@ -350,13 +367,13 @@ export default function Home() {
         </div>
       </section>
       {image && <div className="absolute left-3 top-[170px] z-20 flex items-center gap-2 rounded-lg border border-red-500/30 bg-slate-950 p-1"><Image src={image} alt="Vista previa" width={48} height={48} unoptimized className="h-12 w-12 rounded object-cover"/><button onClick={() => setImage(undefined)} className="h-7 w-7 text-sm">×</button></div>}
-      <CabinetFeed messages={messages} busy={busy} profiles={state.agentProfiles} apiKey={state.config.apiKey} busyLabel="Consejo en debate secuencial…"/>
+      <CabinetFeed messages={messages} busy={busy} profiles={state.agentProfiles} ttsApiKey={state.config.ttsApiKey} busyLabel="Consejo en debate secuencial…"/>
       <TacticalControls busy={busy || !emergencyOrder.length} onSend={send} onImage={handleImage} onStartVoice={startVoice} onStopVoice={stopVoice} crisis placeholder="Presenta el dilema al Consejo de Emergencia…"/>
     </>}
 
     <MemoryDrawer open={memoryOpen} profile={state.empireProfile} timeline={state.timeline} agentProfiles={state.agentProfiles} onClose={() => setMemoryOpen(false)} onProfileChange={empireProfile => setState(current => ({ ...current, empireProfile, gameTitle: empireProfile.empireName || current.gameTitle }))} onDecisionChange={setDecision}/>
     <SettingsModal open={settingsOpen} required={!state.config.apiKey.trim()} config={state.config} onClose={() => setSettingsOpen(false)} onSave={saveConfig} onExport={exportState} onImport={file => void importState(file)}/>
-    <CabinetDossiersModal open={dossiersOpen} profiles={state.agentProfiles} config={state.config} onClose={() => setDossiersOpen(false)} onChange={updateAgentProfiles} onTestVoice={profile => speak("A sus órdenes.", profile, state.config.apiKey)}/>
+    <CabinetDossiersModal open={dossiersOpen} profiles={state.agentProfiles} config={state.config} onClose={() => setDossiersOpen(false)} onChange={updateAgentProfiles} onTestVoice={profile => speak("A sus órdenes.", profile, state.config.ttsApiKey)}/>
     <EmpireSetupModal key={newEmpire ? "new" : isNewProfile ? "initial" : "edit"} open={setupOpen} initialProfile={newEmpire || isNewProfile ? DEFAULT_EMPIRE_PROFILE : state.empireProfile} config={state.config} onConfigureApiKey={() => setSettingsOpen(true)} onClose={() => { setSetupOpen(false); setNewEmpire(false); }} onSave={saveEmpire}/>
   </div>;
 }

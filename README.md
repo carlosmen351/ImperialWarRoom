@@ -22,7 +22,7 @@ This project uses [`next/font`](https://nextjs.org/docs/app/building-your-applic
 
 ## Imperial War Room 1.0.0
 
-Imperial War Room is a client-side Stellaris cabinet. On first launch, enter one Google API Key; it is stored only in this browser and used for Google Gemini API and Google Cloud Text-to-Speech. Enable both services for the associated Google Cloud project. Gemini defaults to `gemini-3.8-flash`; **⚙** lets you choose `gemini-3.8-pro`, `gemini-4-hydrogen`, or enter a custom model ID.
+Imperial War Room is a client-side Stellaris cabinet. On first launch, enter a Google Gemini API Key; it is stored only in this browser. In **⚙ Configuración**, enter a separate optional Google Cloud Text-to-Speech API Key for neural voice playback. Enable each API in the Google Cloud project associated with its key. If the TTS key is empty, the app uses browser speech synthesis. Gemini defaults to `gemini-3.8-flash`; **⚙** lets you choose `gemini-3.8-pro`, `gemini-4-hydrogen`, or enter a custom model ID.
 
 Use **Analizar resumen de Stellaris** to extract the empire constitution from a screenshot; review or edit the extracted fields before saving. The constitution is included in every minister and Black Ops prompt.
 
@@ -34,7 +34,7 @@ The main screen is the **Comunicador de Comando** directory. Open a private 1-a-
 
 Emergency Council participation and speaking order are configurable; Black Ops is last by default and audits the preceding interventions. Responses are generated one after another, displayed as they complete, and queued for each member's assigned Google Cloud voice. The completed debate summary is recorded in the global timeline. Push-to-Talk, camera input, and manual or automatic Screen Wake Lock are supported. Browser speech synthesis is the audio fallback.
 
-All game state and the API Key are stored in browser `localStorage`. The key is sent directly from the browser to the Google APIs. Export/import a save from **⚙**.
+All game state and both API Keys are stored in browser `localStorage`. Each key is sent directly from the browser only to its corresponding Google API. Export/import a save from **⚙**. Use **🧹** in the header to clear the saved game, both API Keys, and Imperial War Room's offline cache from this device; the app asks for confirmation and then reloads with a fresh state.
 
 ## Learn More
 

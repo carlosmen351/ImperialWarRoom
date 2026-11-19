@@ -26,7 +26,7 @@ function SettingsModalContent({ required, config, onClose, onSave, onExport, onI
   const save = () => {
     const apiKey = draft.apiKey.trim();
     if (!apiKey) return;
-    onSave({ ...draft, apiKey, geminiModel: draft.geminiModel.trim() || "gemini-3.8-flash" });
+    onSave({ ...draft, apiKey, ttsApiKey: draft.ttsApiKey.trim(), geminiModel: draft.geminiModel.trim() || "gemini-3.8-flash" });
   };
   const importFile = (event: ChangeEvent<HTMLInputElement>) => {
     if (event.target.files?.[0]) onImport(event.target.files[0]);
@@ -42,14 +42,23 @@ function SettingsModalContent({ required, config, onClose, onSave, onExport, onI
         </div>
         {!required && <button onClick={onClose} className="h-9 w-9 rounded-full border border-slate-700" aria-label="Cerrar configuración">×</button>}
       </header>
-      {required && <p className="mb-4 text-sm leading-5 text-slate-400">Ingresa tu clave para habilitar las consultas Gemini y las voces neuronales Google Cloud. Se guarda únicamente en este dispositivo.</p>}
+      {required && <p className="mb-4 text-sm leading-5 text-slate-400">Ingresa tu clave para habilitar las consultas Gemini. Se guarda únicamente en este dispositivo.</p>}
 
-      <label className="block text-xs text-slate-400">Google API Key<input autoFocus={required} type="password" autoComplete="new-password" value={draft.apiKey} onChange={event => set({ apiKey: event.target.value })} placeholder="Pega tu Google API Key" className="mt-1 h-11 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 text-sm text-slate-100"/></label>
-      <p className="mt-2 text-[11px] leading-4 text-slate-500">Una sola clave alimenta Google Gemini API y Google Cloud Text-to-Speech. Activa ambos servicios en el proyecto de Google Cloud asociado.</p>
+      <section className="rounded-lg border border-slate-800 p-3">
+        <p className="text-xs font-semibold text-slate-300">Credencial de conversación</p>
+        <label className="mt-2 block text-xs text-slate-400">Google Gemini API Key<input autoFocus={required} type="password" autoComplete="new-password" value={draft.apiKey} onChange={event => set({ apiKey: event.target.value })} placeholder="Pega la API Key de Gemini" className="mt-1 h-11 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 text-sm text-slate-100"/></label>
+        <p className="mt-2 text-[11px] leading-4 text-slate-500">Se usa para las consultas de chat y la extracción de datos con Gemini.</p>
+      </section>
+
+      <section className="mt-3 rounded-lg border border-slate-800 p-3">
+        <p className="text-xs font-semibold text-slate-300">Credencial de voz · Google Cloud Text-to-Speech</p>
+        <label className="mt-2 block text-xs text-slate-400">Google Cloud TTS API Key (independiente)<input type="password" autoComplete="new-password" value={draft.ttsApiKey} onChange={event => set({ ttsApiKey: event.target.value })} placeholder="Pega la API Key de Text-to-Speech" className="mt-1 h-11 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 text-sm text-slate-100"/></label>
+        <p className="mt-2 text-[11px] leading-4 text-slate-500">Opcional. Se envía únicamente a Google Cloud Text-to-Speech. Si está vacía, la voz usa la síntesis local del navegador.</p>
+      </section>
 
       <div className="mt-4 rounded-lg border border-slate-800 p-3">
         <p className="text-xs text-slate-400">Proveedor de IA</p>
-        <p className="mt-1 text-sm font-medium text-slate-200">Google Gemini API + Google Cloud Text-to-Speech</p>
+        <p className="mt-1 text-sm font-medium text-slate-200">Google Gemini API</p>
         <label className="mt-3 block text-xs text-slate-400">Modelo Gemini</label>
         <select value={geminiModels.includes(draft.geminiModel) ? draft.geminiModel : "custom"} onChange={event => { if (event.target.value !== "custom") set({ geminiModel: event.target.value }); }} className="mt-1 h-11 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 text-sm text-slate-100">
           <option value="gemini-3.8-flash">gemini-3.8-flash · rápido</option>

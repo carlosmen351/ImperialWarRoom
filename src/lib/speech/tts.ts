@@ -4,7 +4,7 @@ import { GOOGLE_TTS_VOICES } from "@/lib/speech/voices";
 export interface SpeechLine {
   text: string;
   profile: AgentProfile;
-  apiKey: string;
+  ttsApiKey: string;
 }
 
 let playbackId = 0;
@@ -54,14 +54,14 @@ function playNative(text: string, languageCode: string, id = playbackId) {
   window.speechSynthesis.speak(utterance);
 }
 
-async function playCloud(text: string, voiceId: AgentProfile["voiceId"], apiKey: string, id: number) {
-  if (!apiKey || !text || id !== playbackId || typeof Audio === "undefined") return false;
+async function playCloud(text: string, voiceId: AgentProfile["voiceId"], ttsApiKey: string, id: number) {
+  if (!ttsApiKey || !text || id !== playbackId || typeof Audio === "undefined") return false;
   const voice = GOOGLE_TTS_VOICES.find(item => item.id === voiceId) || GOOGLE_TTS_VOICES[0];
 
   const controller = new AbortController();
   activeRequest = controller;
   try {
-    const response = await fetch(`https://texttospeech.googleapis.com/v1/text:synthesize?key=${encodeURIComponent(apiKey)}`, {
+    const response = await fetch(`https://texttospeech.googleapis.com/v1/text:synthesize?key=${encodeURIComponent(ttsApiKey)}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       signal: controller.signal,
@@ -121,17 +121,17 @@ async function playCloud(text: string, voiceId: AgentProfile["voiceId"], apiKey:
   }
 }
 
-async function playLine(text: string, profile: AgentProfile | undefined, apiKey: string, id: number) {
+async function playLine(text: string, profile: AgentProfile | undefined, ttsApiKey: string, id: number) {
   const cleanedText = cleanSpeechText(text);
   if (!cleanedText || id !== playbackId) return;
   const voice = GOOGLE_TTS_VOICES.find(item => item.id === profile?.voiceId) || GOOGLE_TTS_VOICES[0];
-  const played = await playCloud(cleanedText, voice.id, apiKey, id);
+  const played = await playCloud(cleanedText, voice.id, ttsApiKey, id);
   if (!played && id === playbackId) playNative(cleanedText, voice.languageCode, id);
 }
 
-export function speak(text: string, profile: AgentProfile, apiKey: string, stopFirst = true) {
+export function speak(text: string, profile: AgentProfile, ttsApiKey: string, stopFirst = true) {
   const id = stopFirst ? stopCurrentPlayback() : playbackId;
-  void playLine(text, profile, apiKey, id);
+  void playLine(text, profile, ttsApiKey, id);
 }
 
 export function speakQueue(lines: SpeechLine[]) {
@@ -161,7 +161,7 @@ function startQueue(id: number) {
       return;
     }
     const voice = GOOGLE_TTS_VOICES.find(item => item.id === line.profile.voiceId) || GOOGLE_TTS_VOICES[0];
-    const played = await playCloud(text, voice.id, line.apiKey, id);
+    const played = await playCloud(text, voice.id, line.ttsApiKey, id);
     if (id !== playbackId) return;
     if (played || !("speechSynthesis" in window)) {
       void next();

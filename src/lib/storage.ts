@@ -17,6 +17,7 @@ export const DEFAULT_EMPIRE_PROFILE: EmpireProfile = {
 
 export const DEFAULT_CONFIG: ProviderConfig = {
   apiKey: "",
+  ttsApiKey: "",
   geminiModel: "gemini-3.8-flash",
 };
 
@@ -90,6 +91,9 @@ export function loadWarRoom(): WarRoomState {
           apiKey: parsed.config?.provider && parsed.config.provider !== "gemini"
             ? parsed.config.googleTtsApiKey || ""
             : parsed.config?.apiKey || parsed.config?.googleTtsApiKey || "",
+          ttsApiKey: typeof parsed.config?.ttsApiKey === "string"
+            ? parsed.config.ttsApiKey
+            : parsed.config?.googleTtsApiKey || parsed.config?.apiKey || "",
           geminiModel: parsed.config?.geminiModel === "gemini-2.5-flash" ? DEFAULT_CONFIG.geminiModel : parsed.config?.geminiModel || DEFAULT_CONFIG.geminiModel,
         },
       };
