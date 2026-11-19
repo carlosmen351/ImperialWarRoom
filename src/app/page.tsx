@@ -62,7 +62,8 @@ export default function Home() {
   }, [state, hydrated]);
   useEffect(() => {
     if (process.env.NODE_ENV !== "production" || !("serviceWorker" in navigator)) return;
-    navigator.serviceWorker.register("/ImperialWarRoom/sw.js").catch(error => console.error("No se pudo registrar el Service Worker de Imperial War Room.", error));
+    const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+    navigator.serviceWorker.register(`${basePath}/sw.js`).catch(error => console.error("No se pudo registrar el Service Worker de Imperial War Room.", error));
   }, []);
 
   const addMessage = (message: TurnMessage) => setState(current => ({ ...current, history: [...current.history, message].slice(-60) }));

@@ -11,6 +11,7 @@
 - Added editable dossiers for all five agents: display name and rank, compressed photo or preset avatar, tactical color, browser voice, pitch, speed, and role notes.
 - Connected dossier settings to response cards, system prompts, individual playback, and sequential speech output.
 - Added migration from earlier beta saves, retained JSON import/export, and documented the new workflows.
+- Made the deployment base path configurable: Vercel uses the domain root by default; the GitHub Pages workflow sets its project subpath explicitly.
 
 ### Phase 1 — Functional Imperial War Room beta
 

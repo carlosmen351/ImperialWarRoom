@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const projectBasePath = process.env.NODE_ENV === "production" ? "/ImperialWarRoom" : "";
+const projectBasePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
 export const metadata: Metadata = {
   title: "Imperial War Room",

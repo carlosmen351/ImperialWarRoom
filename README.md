@@ -41,6 +41,6 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 
 ## Deploy on Vercel
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Import the repository into [Vercel](https://vercel.com/new) and deploy with the default root path; no `NEXT_PUBLIC_BASE_PATH` environment variable is needed. The GitHub Pages workflow sets `NEXT_PUBLIC_BASE_PATH=/ImperialWarRoom` for its project subpath automatically.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
