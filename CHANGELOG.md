@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.0.1-beta.3] - 2026-11-20
+
+### Phase 3 — Gemini model refresh and Google Cloud neural speech
+
+- Updated Gemini's default model to `gemini-3.8-flash`, added `gemini-3.8-pro` and `gemini-4-hydrogen` presets, and retained support for custom model IDs.
+- Migrated existing saves using the previous default `gemini-2.5-flash` to the new default without changing custom model selections.
+- Added client-side Google Cloud Text-to-Speech playback using `es-US-Neural2` voices, agent-specific voice selection, pitch, and speaking rate.
+- Reused the Google API key when Gemini is selected and added an optional separate Cloud TTS key. Cloud TTS failures or missing credentials fall back to browser speech synthesis.
+- Cleaned Markdown from spoken content and preserved sequential cabinet voice playback.
+
 ## [0.0.1-beta.2] - 2026-11-19
 
 ### Phase 2 — Empire setup, crisis timeline, and cabinet dossiers

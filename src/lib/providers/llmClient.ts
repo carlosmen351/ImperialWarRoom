@@ -16,7 +16,8 @@ export async function sendPrompt(config: ProviderConfig, systemPrompt: string, m
       if (typeof message.content === "string") return [{ text: `${message.role === "user" ? "Usuario" : "Contexto"}: ${message.content}` }];
       return message.content.map(item => item.type === "text" ? { text: item.text || "" } : { inlineData: { mimeType: "image/jpeg", data: (item.image_url?.url || "").split(",")[1] || "" } });
     });
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${config.geminiModel}:generateContent?key=${encodeURIComponent(config.apiKey)}`, {
+    const model = config.geminiModel.trim() || "gemini-3.8-flash";
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(config.apiKey)}`, {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ systemInstruction: { parts: [{ text: systemPrompt }] }, contents: [{ role: "user", parts }], generationConfig: { temperature: 0.7 } }),
     });

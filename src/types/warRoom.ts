@@ -5,6 +5,7 @@ export interface ProviderConfig {
   provider: ProviderId;
   apiKey: string;
   geminiModel: string;
+  googleTtsApiKey: string;
   openRouterModel: string;
   ollamaUrl: string;
   ollamaModel: string;
@@ -41,6 +42,7 @@ export interface AgentProfile {
   displayName: string;
   avatar: string;
   color: string;
+  cloudVoiceName: string;
   voiceURI: string;
   pitch: number;
   rate: number;

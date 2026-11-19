@@ -97,6 +97,7 @@ export default function Home() {
         speakQueue(agentOrder.map(agentId => ({
           text: `${state.agentProfiles[agentId].displayName}. ${resultById.get(agentId) || ""}`,
           profile: state.agentProfiles[agentId],
+          config: state.config,
         })));
       }
     } finally { setBusy(false); }
@@ -174,11 +175,11 @@ export default function Home() {
     </header>
     {image && <div className="absolute left-3 top-[66px] z-20 flex items-center gap-2 rounded-lg border border-sky-500/30 bg-slate-950 p-1"><Image src={image} alt="Vista previa" width={48} height={48} unoptimized className="h-12 w-12 rounded object-cover"/><button onClick={() => setImage(undefined)} className="h-7 w-7 text-sm">×</button></div>}
     {storageError && <p role="alert" className="absolute left-2 right-2 top-[62px] z-20 rounded-lg border border-amber-500/30 bg-amber-950/90 p-2 text-xs text-amber-200">{storageError}</p>}
-    <CabinetFeed messages={state.history} busy={busy} profiles={state.agentProfiles}/>
+    <CabinetFeed messages={state.history} busy={busy} profiles={state.agentProfiles} config={state.config}/>
     <TacticalControls busy={busy} onSend={send} onImage={handleImage} onStartVoice={startVoice} onStopVoice={stopVoice}/>
     <MemoryDrawer open={memoryOpen} profile={state.empireProfile} timeline={state.timeline} agentProfiles={state.agentProfiles} onClose={() => setMemoryOpen(false)} onProfileChange={empireProfile => setState(current => ({ ...current, empireProfile, gameTitle: empireProfile.empireName || current.gameTitle }))} onDecisionChange={setDecision}/>
     <SettingsModal open={settingsOpen} config={state.config} onClose={() => setSettingsOpen(false)} onChange={config => setState(current => ({ ...current, config }))} onExport={exportState} onImport={file => void importState(file)}/>
-    <CabinetDossiersModal open={dossiersOpen} profiles={state.agentProfiles} onClose={() => setDossiersOpen(false)} onChange={agentProfiles => setState(current => ({ ...current, agentProfiles }))} onTestVoice={profile => speak(`Prueba de voz para ${profile.displayName}.`, profile)}/>
+    <CabinetDossiersModal open={dossiersOpen} profiles={state.agentProfiles} onClose={() => setDossiersOpen(false)} onChange={agentProfiles => setState(current => ({ ...current, agentProfiles }))} onTestVoice={profile => speak(`Prueba de voz para ${profile.displayName}.`, profile, state.config)}/>
     <EmpireSetupModal key={newEmpire ? "new" : isNewProfile ? "initial" : "edit"} open={setupOpen} initialProfile={newEmpire || isNewProfile ? DEFAULT_EMPIRE_PROFILE : state.empireProfile} config={state.config} onConfigureProvider={() => { setSetupOpen(false); setSettingsOpen(true); }} onClose={() => { setSetupOpen(false); setNewEmpire(false); }} onSave={saveEmpire}/>
   </div>;
 }

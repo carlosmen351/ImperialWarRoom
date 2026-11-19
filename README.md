@@ -26,9 +26,11 @@ The app is a client-side Stellaris cabinet. Configure a Gemini, OpenRouter, or O
 
 **📋** opens the empire constitution and chronological cabinet-decision timeline. Each completed consultation is recorded with one-line recommendations from all five cabinet members. Approve an option or edit the verdict; the five latest events are provided as historical context on later consultations.
 
-**🪪 Gabinete** opens the five editable member dossiers, including name/rank, compressed avatar, tactical color, browser voice, pitch, speed, and role notes. Dossier changes are persisted locally and are reflected in chat cards, voice playback, and system prompts.
+**🪪 Gabinete** opens the five editable member dossiers, including name/rank, compressed avatar, tactical color, Google neural voice, browser fallback voice, pitch, speed, and role notes. Dossier changes are persisted locally and are reflected in chat cards, voice playback, and system prompts.
 
-All game state and provider settings are stored in browser `localStorage`. API credentials remain on the device and are sent directly to the selected provider. Export/import a save from the controls in **Ajustes IA**.
+Gemini defaults to `gemini-3.8-flash`; **Ajustes IA** also offers `gemini-3.8-pro`, `gemini-4-hydrogen`, and a freeform model ID. Google Cloud Text-to-Speech is the primary speech engine. It reuses the configured Google API key when Gemini is selected, or accepts a separate TTS key; browser speech synthesis is the automatic fallback. Enable the Cloud Text-to-Speech API (and billing, if required for your account) for the Google key.
+
+All game state and provider settings are stored in browser `localStorage`. API credentials remain on the device and are sent directly to the selected provider or Google Cloud TTS. Export/import a save from the controls in **Ajustes IA**.
 
 ## Learn More
 

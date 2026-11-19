@@ -7,6 +7,7 @@ import Image from "next/image";
 
 const ids: Exclude<AgentId, "memoryUpdater">[] = ["almirante", "canciller", "cientifico", "logistica", "blackops"];
 const icons = ["⚔️", "◈", "⌬", "⬡", "◆", "🛡️", "🚀", "🦅", "👁️", "⭐"];
+const cloudVoices = ["es-US-Neural2-A", "es-US-Neural2-B", "es-US-Neural2-C", "es-US-Neural2-D"];
 type Profiles = Record<Exclude<AgentId, "memoryUpdater">, AgentProfile>;
 
 function Avatar({ value }: { value: string }) {
@@ -58,6 +59,7 @@ export default function CabinetDossiersModal({ open, profiles, onClose, onChange
         <label className="block text-xs text-slate-400">Color táctico<input type="color" value={profile.color} onChange={event => update({ color: event.target.value })} className="mt-1 h-10 w-full cursor-pointer rounded-lg border border-slate-700 bg-slate-950 p-1"/></label>
         <div className="sm:col-span-2"><p className="mb-2 text-xs text-slate-400">Avatar predefinido</p><div className="flex flex-wrap gap-2">{icons.map(icon => <button key={icon} onClick={() => update({ avatar: icon })} className={`h-9 w-9 rounded-lg border ${profile.avatar === icon ? "border-sky-400 bg-sky-900/30" : "border-slate-700"}`}>{icon}</button>)}</div></div>
         <label className="block text-xs text-slate-400 sm:col-span-2">Voz del dispositivo<select value={profile.voiceURI} onChange={event => update({ voiceURI: event.target.value })} className="mt-1 h-10 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 text-sm text-slate-100"><option value="">Predeterminada (es-MX)</option>{voices.map(voice => <option key={voice.voiceURI} value={voice.voiceURI}>{voice.name} · {voice.lang}</option>)}</select></label>
+        <label className="block text-xs text-slate-400 sm:col-span-2">Voz neuronal (Google Cloud)<select value={profile.cloudVoiceName} onChange={event => update({ cloudVoiceName: event.target.value })} className="mt-1 h-10 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 text-sm text-slate-100">{cloudVoices.map(voice => <option key={voice} value={voice}>{voice}</option>)}</select></label>
         <label className="block text-xs text-slate-400">Tono · {profile.pitch.toFixed(2)}<input type="range" min="0.5" max="1.5" step="0.05" value={profile.pitch} onChange={event => update({ pitch: Number(event.target.value) })} className="mt-2 w-full accent-sky-500"/></label>
         <label className="block text-xs text-slate-400">Velocidad · {profile.rate.toFixed(2)}<input type="range" min="0.8" max="1.3" step="0.05" value={profile.rate} onChange={event => update({ rate: Number(event.target.value) })} className="mt-2 w-full accent-sky-500"/></label>
         <label className="block text-xs text-slate-400 sm:col-span-2">Biografía / notas de rol<textarea value={profile.bio} onChange={event => update({ bio: event.target.value })} maxLength={500} placeholder="Contexto adicional para su personalidad y recomendaciones..." className="mt-1 min-h-20 w-full rounded-lg border border-slate-700 bg-slate-950 p-3 text-sm text-slate-100"/></label>
